@@ -36,6 +36,8 @@
           return;
         }
 
+
+
       
 if (data.user) {
   const { data: admin, error: adminError } = await db
@@ -54,6 +56,8 @@ if (data.user) {
   message.textContent =
     "Super Admin verified successfully!";
 }
+
+window.location.href = "dashboard.html";
 
         }
       } catch (err) {
