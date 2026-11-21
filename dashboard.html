@@ -34,6 +34,42 @@
     }
   </style>
 </head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  const db = window.supabase.createClient(
+    "https://ztllmicxyjmerkunkfgk.supabase.co",
+    "PASTE_YOUR_PUBLISHABLE_KEY_HERE"
+  );
+
+  async function checkAdmin() {
+    const { data: { user }, error } =
+      await db.auth.getUser();
+
+    if (error || !user) {
+      window.location.replace("index.html");
+      return;
+    }
+
+    const { data: admin, error: adminError } = await db
+      .from("admin_users")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (adminError || !admin) {
+      await db.auth.signOut();
+      window.location.replace("index.html");
+      return;
+    }
+
+    document.body.style.display = "block";
+  }
+
+  document.body.style.display = "none";
+  checkAdmin();
+</script>
+
 <body>
   <div class="container">
     <h1>Insurance Management Dashboard</h1>
