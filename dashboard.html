@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Insurance Admin Dashboard</title>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -32,65 +33,96 @@
       border-radius: 6px;
       cursor: pointer;
     }
+    #dashboard {
+      display: none;
+    }
   </style>
 </head>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
-  const db = window.supabase.createClient(
-    "https://ztllmicxyjmerkunkfgk.supabase.co",
-    "PASTE_YOUR_PUBLISHABLE_KEY_HERE"
-  );
-
-  async function checkAdmin() {
-    const { data: { user }, error } =
-      await db.auth.getUser();
-
-    if (error || !user) {
-      window.location.replace("index.html");
-      return;
-    }
-
-    const { data: admin, error: adminError } = await db
-      .from("admin_users")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (adminError || !admin) {
-      await db.auth.signOut();
-      window.location.replace("index.html");
-      return;
-    }
-
-    document.body.style.display = "block";
-  }
-
- document.body.style.display = "none";
-console.log("Checking admin authentication...");
- 
-</script>
 
 <body>
-  <div class="container">
+
+  <div id="loading">Checking admin authentication...</div>
+
+  <div class="container" id="dashboard">
     <h1>Insurance Management Dashboard</h1>
+
+    <button id="logoutBtn">Logout</button>
+
     <div class="card">
       <h2>Customer Management</h2>
       <p>Add, search and update customers.</p>
     </div>
+
     <div class="card">
       <h2>Excel Bulk Upload</h2>
       <p>Import 200–300 customer records.</p>
     </div>
+
     <div class="card">
       <h2>Automatic QR Code</h2>
       <p>Generate a unique QR code for each policy.</p>
     </div>
+
     <div class="card">
       <h2>Insurance Certificates</h2>
       <p>Create downloadable policy certificates.</p>
     </div>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    const loading = document.getElementById("loading");
+    const dashboard = document.getElementById("dashboard");
+
+    async function checkAdmin() {
+      try {
+        if (!window.supabase) {
+          throw new Error("Supabase library not loaded");
+        }
+
+        const db = window.supabase.createClient(
+          "https://ztllmicxyjmerkunkfgk.supabase.co",
+          "sb_publishable_1OxuYGPUeILy1ZYqiYo2gA_kplF6Scd"
+        );
+
+        const { data, error } = await db.auth.getUser();
+
+        if (error || !data.user) {
+          window.location.replace("index.html");
+          return;
+        }
+
+        const { data: admin, error: adminError } = await db
+          .from("admin_users")
+          .select("user_id")
+          .eq("user_id", data.user.id)
+          .maybeSingle();
+
+        if (adminError || !admin) {
+          await db.auth.signOut();
+          window.location.replace("index.html");
+          return;
+        }
+
+        loading.style.display = "none";
+        dashboard.style.display = "block";
+
+        document.getElementById("logoutBtn")
+          .addEventListener("click", async () => {
+            await db.auth.signOut();
+            window.location.replace("index.html");
+          });
+
+      } catch (err) {
+        loading.textContent =
+          "Authentication check failed. Please refresh or contact admin.";
+        console.error(err);
+      }
+    }
+
+    checkAdmin();
+  </script>
+
 </body>
 </html>
-
